@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+# Service script pour PHP
+  script:
+    build: .  # Utilise le Dockerfile local pour construire l'image
+    image: php-mysql  # Nom de l'image une fois construite
+    volumes:
+      - ${PWD}/src:/app  # Volume donnée pour monter le répertoire src du système hôte dans /app du conteneur
+    networks:
+      - reseau  # Connecté au réseau personnalisé "reseau"
+
+# Service Nginx pour le serveur web
+  http:
+    image: nginx:1.25  # Utilise l'image Nginx version 1.25 disponible sur Docker Hub
+    ports:
+      - "8080:80"  # Mappe le port 8080 du système hôte sur le port 80 du conteneur Nginx
+    volumes:
+      - ${PWD}/conf/default.conf:/etc/nginx/conf.d/default.conf  # Volume donnée pour monter le fichier de configuration Nginx
+      - ${PWD}/src:/app  # Volume donnée pour monter le répertoire src du système hôte dans /app du conteneur
+    networks:
+      - reseau  # Connecté au réseau personnalisé "reseau"
+
+  # Service MySQL pour la base de données
+  data:
+    image: mysql:latest  # Utilise l'image MySQL la plus récente disponible sur Docker Hub
+    environment:
+      MYSQL_ROOT_PASSWORD: root  # Mot de passe root pour MySQL
+      MYSQL_PASSWORD: test  # Mot de passe utilisateur MySQL
+      MYSQL_DATABASE: mydatabase  # Nom de la base de données à créer
+      MYSQL_USER: test  # Nom de l'utilisateur MySQL
+    ports:
+      - "3306:3306"  # Mappe le port 3306 du système hôte sur le port 3306 du conteneur MySQL
+    networks:
+      - reseau  # Connecté au réseau personnalisé "reseau"
+
+networks:
+  reseau:
+    driver: bridge  # Définition du réseau personnalisé "reseau" utilisant le driver bridge
